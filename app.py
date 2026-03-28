@@ -79,11 +79,14 @@ def handle_text(event: MessageEvent):
     # Fetch display name (best-effort; fails gracefully without profile scope)
     display_name = _get_display_name(user_id)
 
+    # Check if this is the user's first message
+    is_first = db.get_user(user_id) == 0
+
     # Store in DB
     db.save_message(user_id, display_name, text, result.intent, result.score)
 
     # Build reply
-    reply_text = get_reply(result.intent, text)
+    reply_text = get_reply(text, is_first=is_first)
 
     with ApiClient(configuration) as api_client:
         api = MessagingApi(api_client)

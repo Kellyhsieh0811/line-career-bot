@@ -32,13 +32,15 @@ print("\n" + "="*60)
 print("  LINE Bot 本地測試")
 print("="*60)
 
-for msg in SAMPLE_MESSAGES:
+for i, msg in enumerate(SAMPLE_MESSAGES):
     result = classify(msg)
-    reply = get_reply(result.intent, msg)
+    is_first = (i == 0)  # simulate first message for the first entry only
+    reply = get_reply(msg, is_first=is_first)
     color = COLORS[result.intent]
     reset = COLORS["RESET"]
+    first_label = " [首次]" if is_first else ""
 
-    print(f"\n{color}[{result.intent}]{reset} 用戶：{msg}")
+    print(f"\n{color}[{result.intent}]{reset}{first_label} 用戶：{msg}")
     print(f"  分數：{result.score}  匹配：{result.matched or '—'}")
     print(f"  Bot 回覆：\n    " + reply.replace("\n", "\n    "))
     print("-"*60)

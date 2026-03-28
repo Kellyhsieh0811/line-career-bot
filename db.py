@@ -57,6 +57,15 @@ def save_message(user_id: str, display_name: str, message: str, intent: str, sco
         """, (user_id, display_name))
 
 
+def get_user(user_id: str) -> int:
+    """Return message_count for user_id, or 0 if user not seen before."""
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT message_count FROM users WHERE user_id = ?", (user_id,)
+        ).fetchone()
+    return row["message_count"] if row else 0
+
+
 def get_recent_messages(limit: int = 50) -> list[dict]:
     with _conn() as conn:
         rows = conn.execute(
