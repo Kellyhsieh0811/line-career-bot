@@ -2,7 +2,8 @@
 LINE Career Consulting Bot — Flask webhook server.
 
 Endpoints:
-  POST /webhook   — LINE Messaging API webhook
+  POST /callback  — LINE Messaging API webhook
+                    https://line-career-bot-kelly.zeabur.app/callback
   GET  /health    — health check for Zeabur
 """
 import os
@@ -53,8 +54,8 @@ def health():
     return {"status": "ok"}, 200
 
 
-@app.route("/webhook", methods=["POST"])
-def webhook():
+@app.route("/callback", methods=["POST"])
+def callback():
     signature = request.headers.get("X-Line-Signature", "")
     body = request.get_data(as_text=True)
 
