@@ -40,7 +40,7 @@ configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
 from classifier import classify
-from replies import get_reply
+from replies import get_reply_and_type
 import db
 
 # ── Flask app ──────────────────────────────────────────────────────────────────
@@ -80,13 +80,26 @@ def handle_text(event: MessageEvent):
     display_name = _get_display_name(user_id)
 
     # Check if this is the user's first message
-    is_first = db.get_user(user_id) == 0
+    message_count = db.get_user(user_id)
+    is_first = message_count == 0
+    last_reply_type = db.get_last_reply_type(user_id) or ""
+    last_conversation_goal = db.get_conversation_goal(user_id) or ""
 
     # Store in DB
     db.save_message(user_id, display_name, text, result.intent, result.score)
 
     # Build reply
-    reply_text = get_reply(text, is_first=is_first)
+    reply_text, reply_type, goal = get_reply_and_type(
+        text,
+        is_first=is_first,
+        last_reply_type=last_reply_type,
+        message_count=message_count,
+        last_conversation_goal=last_conversation_goal,
+    )
+    if reply_type:
+        db.set_last_reply_type(user_id, reply_type)
+    if goal:
+        db.set_conversation_goal(user_id, goal)
 
     with ApiClient(configuration) as api_client:
         api = MessagingApi(api_client)

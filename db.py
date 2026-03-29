@@ -28,6 +28,16 @@ def init_db():
                 message_count INTEGER DEFAULT 0
             );
         """)
+    # Migrations: add columns to existing databases
+    for col_sql in [
+        "ALTER TABLE users ADD COLUMN last_reply_type TEXT",
+        "ALTER TABLE users ADD COLUMN conversation_goal TEXT",
+    ]:
+        try:
+            with _conn() as conn:
+                conn.execute(col_sql)
+        except Exception:
+            pass  # column already exists
 
 
 @contextmanager
@@ -64,6 +74,38 @@ def get_user(user_id: str) -> int:
             "SELECT message_count FROM users WHERE user_id = ?", (user_id,)
         ).fetchone()
     return row["message_count"] if row else 0
+
+
+def get_last_reply_type(user_id: str) -> str | None:
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT last_reply_type FROM users WHERE user_id = ?", (user_id,)
+        ).fetchone()
+    return row["last_reply_type"] if row else None
+
+
+def set_last_reply_type(user_id: str, reply_type: str):
+    with _conn() as conn:
+        conn.execute(
+            "UPDATE users SET last_reply_type = ? WHERE user_id = ?",
+            (reply_type, user_id),
+        )
+
+
+def get_conversation_goal(user_id: str) -> str | None:
+    with _conn() as conn:
+        row = conn.execute(
+            "SELECT conversation_goal FROM users WHERE user_id = ?", (user_id,)
+        ).fetchone()
+    return row["conversation_goal"] if row else None
+
+
+def set_conversation_goal(user_id: str, goal: str):
+    with _conn() as conn:
+        conn.execute(
+            "UPDATE users SET conversation_goal = ? WHERE user_id = ?",
+            (goal, user_id),
+        )
 
 
 def get_recent_messages(limit: int = 50) -> list[dict]:

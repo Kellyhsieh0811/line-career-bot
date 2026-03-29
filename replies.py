@@ -13,7 +13,7 @@ FORM_LINK = os.getenv("FORM_LINK", "https://reurl.cc/dQKd5M")
 
 _FIRST_VISIT_REPLY = (
     "嗨！歡迎來找我 👋\n\n"
-    "我是職涯諮詢師，專注在金融業的中年轉職和職涯規劃。\n\n"
+    "我是職涯諮詢師 凱莉，專注在金融業的中年轉職和職涯規劃。\n\n"
     "你可以直接跟我說你現在的狀況，我來幫你釐清方向。"
 )
 
@@ -46,11 +46,11 @@ _SERVICE_QUESTION = (
 )
 
 _PRICE_QUESTION = (
-    "目前一對一職涯諮詢是 3000 元 / 1 小時，\n"
-    "會根據你的背景幫你把方向、履歷定位或面試策略一起整理清楚。\n\n"
-    "多數人會在這個階段，把原本卡住的方向或履歷問題釐清很多。\n\n"
-    "如果後續有進一步服務，這次費用也可以折抵。\n\n"
-    "如果你願意，也可以先跟我說一下你的狀況，\n"
+    "目前一對一職涯諮詢是 3000 / 1 小時，\n"
+    "會依你的背景幫你把方向、履歷定位或面試策略整理清楚。\n\n"
+    "多數人會在這個階段，把卡住的點釐清很多。\n\n"
+    "如果後續有加入陪跑服務，這次費用也可以折抵。\n\n"
+    "如果你願意，可以先跟我說一下你的狀況，\n"
     "我可以幫你看這樣的方式對你有沒有幫助。"
 )
 
@@ -66,12 +66,12 @@ _HIGH_MAINTENANCE = (
 # ── High intent (service/form) ─────────────────────────────────────────────────
 
 _HIGH_REPLY = (
-    "你好！很高興認識你 😊\n\n"
+    "你好！我是凱莉，做職涯諮詢的 😊\n\n"
     "如果你正在煩惱求職、轉職，或不知道職涯下一步怎麼走，\n"
     "可以先跟我說你的狀況，我會先幫你一起釐清方向。\n\n"
     "如果你希望更完整深入地討論，\n"
     "我目前有提供 1 對 1 職涯諮詢，時間是 1 小時，費用為 3000 元。\n"
-    "若你後續有進一步報名陪跑方案，這 3000 元也可以折抵。\n\n"
+    "若你後續有加入陪跑服務，這 3000 元也可以折抵。\n\n"
     "如果你想先讓我更了解你的背景，\n"
     "可以先填這份表單 👉 {form_link}\n\n"
     "我會再根據你的狀況，跟你說明下一步怎麼安排比較適合。"
@@ -111,8 +111,8 @@ _MEDIUM_REPLIES = {
         "跟我說，我針對你的問題來回答。"
     ),
     "default": (
-        "謝謝你的訊息！\n\n"
-        "你目前遇到的最大困難是什麼？跟我說說，我看看怎麼幫你 🙌"
+        "了解，你現在在思考職涯下一步。\n\n"
+        "你目前最卡的是方向選擇、履歷，還是面試準備？"
     ),
 }
 
@@ -176,19 +176,142 @@ _SPECIFIC_REPLIES = {
 }
 
 
+# ── Reusable form CTA ──────────────────────────────────────────────────────────
+
+_FORM_CTA = (
+    "諮詢前請先填寫以下表單，讓我更了解你的背景與需求：\n"
+    "👉 {form_link}"
+)
+
+
+def _form_cta() -> str:
+    return _FORM_CTA.format(form_link=FORM_LINK)
+
+
+# ── Conversation goal templates ────────────────────────────────────────────────
+
+_GUIDE_TO_CONSULT = (
+    "聽起來你現在卡的地方其實蠻關鍵的。\n\n"
+    "這種情況我通常會幫你把方向、履歷或面試策略一起整理清楚，\n"
+    "讓你知道現在最值得先動的是哪一步。\n\n"
+    "如果你想讓討論更有效率，可以先填這份表單，\n"
+    "我可以更快了解你的背景，後面也能給你更精準的建議。\n\n"
+    "👉 {form_link}"
+)
+
+
+def guide_to_consult_reply() -> str:
+    return _GUIDE_TO_CONSULT.format(form_link=FORM_LINK)
+
+_FOLLOW_UP_NUDGE = (
+    "我想幫你把這個問題想清楚，但我需要更具體的資訊。\n\n"
+    "你現在最想先搞清楚的是哪一件事？\n"
+    "（例如：我的履歷為什麼沒回音、我不知道要轉去哪、我不確定要不要諮詢）"
+)
+
+
+# ── Follow-up replies (sent when same specific intent repeats) ─────────────────
+
+_FOLLOWUP_REPLIES = {
+    "interview_urgent": (
+        "你剛才提到快要面試了。\n\n"
+        "現在準備到哪個階段了？還是說有特定的環節想先確認？"
+    ),
+    "resume_help": (
+        "你剛才說履歷沒什麼回音。\n\n"
+        "你現在投的是什麼樣的職缺？我可以幫你判斷是方向問題還是呈現問題。"
+    ),
+    "transition_confusion": (
+        "你剛才說不確定方向。\n\n"
+        "你現在是完全沒想法，還是有幾個選項但不確定怎麼選？"
+    ),
+    "service_question": (
+        "你之前問過我的服務。\n\n"
+        "你現在最想先釐清的是哪一塊？我可以直接針對你的狀況說明。"
+    ),
+    "price_question": (
+        "你之前已經看過費用了。\n\n"
+        "如果你願意，可以先跟我說一下你目前的背景，\n"
+        "我幫你看這個方式對你有沒有幫助。"
+    ),
+    "high_maintenance": (
+        "你之前有些顧慮，這很正常。\n\n"
+        "有什麼具體的部分想先釐清嗎？"
+    ),
+}
+
+
+# ── Conversation goal determination ───────────────────────────────────────────
+
+def determine_goal(
+    specific: str | None,
+    intent: str,
+    message_count: int,
+    last_reply_type: str,
+    last_conversation_goal: str,
+) -> str:
+    # follow_up_nudge: no specific topic detected, conversation has gone on too long
+    if not specific and message_count >= 4:
+        return "follow_up_nudge"
+
+    # guide_to_consult: classifier HIGH + enough exchanges
+    if intent == "HIGH" and message_count >= 3:
+        return "guide_to_consult"
+    if intent == "HIGH" and specific in ("resume_help", "transition_confusion", "interview_urgent") \
+            and message_count >= 2:
+        return "guide_to_consult"
+
+    # guide_to_consult: conversation history shows enough context even without HIGH signal
+    # — already discussed price or service and still engaging
+    if last_reply_type in ("price_question", "service_question") and message_count >= 3:
+        return "guide_to_consult"
+    # — topic established (resume/direction/interview) and had back-and-forth
+    if last_reply_type in ("resume_help", "transition_confusion", "interview_urgent") \
+            and message_count >= 2:
+        return "guide_to_consult"
+
+    # default: collect_context — use existing specific/intent templates
+    return "collect_context"
+
+
 # ── Main dispatch ──────────────────────────────────────────────────────────────
 
-def get_reply(text: str, is_first: bool = False) -> str:
+def get_reply_and_type(
+    text: str,
+    is_first: bool = False,
+    last_reply_type: str = "",
+    message_count: int = 0,
+    last_conversation_goal: str = "",
+) -> tuple[str, str, str]:
     if is_first:
-        return _FIRST_VISIT_REPLY
+        return _FIRST_VISIT_REPLY, "first_visit", "collect_context"
 
     specific = _detect_specific_intent(text)
-    if specific:
-        return _SPECIFIC_REPLIES[specific]
-
     intent = classify(text).intent
+    goal = determine_goal(specific, intent, message_count, last_reply_type, last_conversation_goal)
+
+    # guide_to_consult overrides all specific routing — always includes form link
+    if goal == "guide_to_consult":
+        return guide_to_consult_reply(), "guide_to_consult", goal
+
+    # specific intent routing (with follow-up deduplication)
+    if specific:
+        if specific == last_reply_type and specific in _FOLLOWUP_REPLIES:
+            return _FOLLOWUP_REPLIES[specific], specific, goal
+        return _SPECIFIC_REPLIES[specific], specific, goal
+
+    # generic follow_up_nudge (no specific, conversation stuck)
+    if goal == "follow_up_nudge":
+        return _FOLLOW_UP_NUDGE, "follow_up_nudge", goal
+
+    # standard intent routing
     if intent == "HIGH":
-        return high_intent_reply()
+        return high_intent_reply(), "high", goal
     if intent == "MEDIUM":
-        return medium_intent_reply(text)
-    return random.choice(_RETURNING_REPLIES)
+        return medium_intent_reply(text), "medium", goal
+    return random.choice(_RETURNING_REPLIES), "low", goal
+
+
+def get_reply(text: str, is_first: bool = False) -> str:
+    reply, _, __ = get_reply_and_type(text, is_first=is_first)
+    return reply
