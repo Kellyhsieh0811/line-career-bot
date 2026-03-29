@@ -12,9 +12,9 @@ FORM_LINK = os.getenv("FORM_LINK", "https://reurl.cc/dQKd5M")
 # ── First visit ────────────────────────────────────────────────────────────────
 
 _FIRST_VISIT_REPLY = (
-    "嗨！歡迎來找我 👋\n\n"
-    "我是職涯諮詢師 凱莉，專注在金融業的中年轉職和職涯規劃。\n\n"
-    "你可以直接跟我說你現在的狀況，我來幫你釐清方向。"
+    "你好，我是職涯諮詢師凱莉 🙂\n"
+    "如果你正在考慮轉職、履歷或面試卡關，都可以直接跟我說你的狀況\n"
+    "我會幫你看下一步怎麼走"
 )
 
 # ── Specific intent replies ────────────────────────────────────────────────────
@@ -46,12 +46,9 @@ _SERVICE_QUESTION = (
 )
 
 _PRICE_QUESTION = (
-    "目前一對一職涯諮詢是 3000 / 1 小時，\n"
-    "會依你的背景幫你把方向、履歷定位或面試策略整理清楚。\n\n"
-    "多數人會在這個階段，把卡住的點釐清很多。\n\n"
-    "如果後續有加入陪跑服務，這次費用也可以折抵。\n\n"
-    "如果你願意，可以先跟我說一下你的狀況，\n"
-    "我可以幫你看這樣的方式對你有沒有幫助。"
+    "目前是一對一職涯諮詢 3000 元 / 60 分鐘\n"
+    "我會幫你把方向、履歷或面試策略一次整理清楚\n\n"
+    "如果你有需要，我可以幫你看你的狀況適不適合"
 )
 
 _HIGH_MAINTENANCE = (
@@ -137,8 +134,8 @@ _RETURNING_REPLIES = [
 # ── Specific intent detection (keyword-based) ──────────────────────────────────
 
 def _detect_specific_intent(text: str) -> str | None:
-    # 1. price_question — checked first (clearest signal)
-    if any(k in text for k in ["多少", "價格", "收費", "費用"]):
+    # 1. price_question — highest priority, always answer directly
+    if any(k in text for k in ["多少", "價格", "收費", "費用", "1500", "3000", "多少錢"]):
         return "price_question"
 
     # 2. interview_urgent — "面試" + any time word
@@ -290,8 +287,8 @@ def get_reply_and_type(
     intent = classify(text).intent
     goal = determine_goal(specific, intent, message_count, last_reply_type, last_conversation_goal)
 
-    # guide_to_consult overrides all specific routing — always includes form link
-    if goal == "guide_to_consult":
+    # guide_to_consult overrides specific routing — but price always answers directly
+    if goal == "guide_to_consult" and specific != "price_question":
         return guide_to_consult_reply(), "guide_to_consult", goal
 
     # specific intent routing (with follow-up deduplication)
