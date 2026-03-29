@@ -46,9 +46,12 @@ _SERVICE_QUESTION = (
 )
 
 _PRICE_QUESTION = (
-    "目前是一對一職涯諮詢 3000 元 / 60 分鐘\n"
-    "我會幫你把方向、履歷或面試策略一次整理清楚\n\n"
-    "如果你有需要，我可以幫你看你的狀況適不適合"
+    "了解，你是在評估這個方式適不適合你。\n\n"
+    "很多找我諮詢的人，在這個階段都還沒把真正卡住的點整理清楚，\n"
+    "這也是一對一諮詢最有幫助的地方——\n"
+    "把方向、履歷或面試策略一起釐清，讓你知道最值得先動的是哪一步。\n\n"
+    "目前是一對一職涯諮詢 3000 元 / 60 分鐘。\n\n"
+    "如果你有需要，我可以幫你看你的狀況適不適合。"
 )
 
 _HIGH_MAINTENANCE = (
@@ -206,6 +209,16 @@ _FOLLOW_UP_NUDGE = (
     "（例如：我的履歷為什麼沒回音、我不知道要轉去哪、我不確定要不要諮詢）"
 )
 
+_MENU_REMINDER = (
+    "我先幫你整理一下。\n\n"
+    "通常在這個階段，大家遇到的狀況大概是這幾種：\n\n"
+    "・想轉職，但不確定方向\n"
+    "・履歷或 LinkedIn 感覺沒什麼效果\n"
+    "・快要面試，想做更好的準備\n"
+    "・想了解職涯諮詢或陪跑服務適不適合自己\n\n"
+    "你覺得比較靠近哪一種？"
+)
+
 
 # ── Follow-up replies (sent when same specific intent repeats) ─────────────────
 
@@ -287,6 +300,14 @@ def get_reply_and_type(
     intent = classify(text).intent
     goal = determine_goal(specific, intent, message_count, last_reply_type, last_conversation_goal)
 
+    # If bot was waiting for a menu reply and user didn't select a valid option
+    if last_reply_type == "medium_menu" and not specific:
+        if len(text.strip()) <= 5:
+            # Too vague to route — ask to pick an option
+            return _MENU_REMINDER, "medium_menu", "collect_context"
+        # Understandable but didn't match a specific intent — continue conversation
+        return medium_intent_reply(text), "medium_menu", goal
+
     # guide_to_consult overrides specific routing — but price always answers directly
     if goal == "guide_to_consult" and specific != "price_question":
         return guide_to_consult_reply(), "guide_to_consult", goal
@@ -305,7 +326,7 @@ def get_reply_and_type(
     if intent == "HIGH":
         return high_intent_reply(), "high", goal
     if intent == "MEDIUM":
-        return medium_intent_reply(text), "medium", goal
+        return medium_intent_reply(text), "medium_menu", goal
     return random.choice(_RETURNING_REPLIES), "low", goal
 
 
