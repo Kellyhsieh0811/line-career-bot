@@ -54,6 +54,20 @@ _PRICE_QUESTION = (
     "如果你有需要，我可以幫你看你的狀況適不適合。"
 )
 
+_JOB_OPENING_FIRST = (
+    "我這邊主要提供職涯定位與履歷優化，幫你提升錄取率，\n"
+    "直接推薦職缺比較不是我的重點。\n\n"
+    "不過如果你現在在找工作，我可以幫你先把方向跟履歷整理清楚，\n"
+    "讓你投出去的每一份都更有機會。\n\n"
+    "你現在最卡的是哪一塊？"
+)
+
+_JOB_OPENING_REPEATED = (
+    "看來你很關心職缺資訊！\n"
+    "我這邊主要提供職涯定位與履歷優化，幫你提升錄取率。\n\n"
+    "在幫你介紹前，能先聊聊你目前卡關的地方嗎？"
+)
+
 _HIGH_MAINTENANCE = (
     "我懂你想先多了解一些，這其實很正常。\n\n"
     "我這邊的方式會比較偏「一起把整體方向整理清楚」，\n"
@@ -159,7 +173,11 @@ def _detect_specific_intent(text: str) -> str | None:
     if any(k in text for k in ["服務", "怎麼幫", "你做什麼", "可以幫我", "有案例", "先幫我看", "先給我看"]):
         return "service_question"
 
-    # 6. high_maintenance — strong negative or resistant signals only
+    # 6. job_opening — asking about available positions
+    if any(k in text for k in ["職缺", "有工作", "工作機會", "有沒有工作", "缺人", "職位", "找工作"]):
+        return "job_opening"
+
+    # 7. high_maintenance — strong negative or resistant signals only
     if any(k in text for k in ["太貴", "不值得", "沒用", "騙", "不需要"]):
         return "high_maintenance"
 
@@ -172,6 +190,7 @@ _SPECIFIC_REPLIES = {
     "transition_confusion": _TRANSITION_CONFUSION,
     "service_question":    _SERVICE_QUESTION,
     "price_question":      _PRICE_QUESTION,
+    "job_opening":         _JOB_OPENING_FIRST,
     "high_maintenance":    _HIGH_MAINTENANCE,
 }
 
@@ -314,7 +333,10 @@ def get_reply_and_type(
 
     # specific intent routing (with follow-up deduplication)
     if specific:
-        if specific == last_reply_type and specific in _FOLLOWUP_REPLIES:
+        is_repeated_query = specific == last_reply_type
+        if specific == "job_opening" and is_repeated_query:
+            return _JOB_OPENING_REPEATED, "job_opening", goal
+        if is_repeated_query and specific in _FOLLOWUP_REPLIES:
             return _FOLLOWUP_REPLIES[specific], specific, goal
         return _SPECIFIC_REPLIES[specific], specific, goal
 
